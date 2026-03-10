@@ -152,8 +152,6 @@ def main() -> None:
 
     config = _load_config()
     mon_config = config["monitoring"]
-    active_start = mon_config["active_hours"]["start"]
-    active_end = mon_config["active_hours"]["end"]
 
     # 필수 환경변수 확인
     if not os.environ.get("SLACK_BOT_TOKEN"):
@@ -166,17 +164,18 @@ def main() -> None:
         logger.error("auth/session.json 파일이 없습니다. python src/auth_setup.py를 먼저 실행하세요.")
         sys.exit(1)
 
+    interval = mon_config["poll_interval_minutes"]
+
     logger.info("Flex 근태 모니터링 시작")
-    logger.info(f"활성 시간: {active_start}:00 ~ {active_end}:00 KST")
-    logger.info(f"폴링 간격: {mon_config['poll_interval_minutes']}분")
+    logger.info(f"폴링 간격: {interval}분 (24시간)")
 
     monitor = Monitor(scheduler)
 
     scheduler.add_job(
         job,
         trigger="cron",
-        hour=f"{active_start}-{active_end - 1}",
-        minute="*",
+        hour="*",
+        minute=f"*/{interval}",
         id="flex_monitor",
         max_instances=1,
         coalesce=True,

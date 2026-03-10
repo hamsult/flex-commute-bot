@@ -10,8 +10,8 @@ flex:
 monitoring:
   poll_interval_minutes: 3
   active_hours:
-    start: 7   # 07:00 KST
-    end: 22    # 22:00 KST
+    start: 0   # 00:00 KST
+    end: 24    # 24:00 KST (24시간)
   retry:
     max_attempts: 3
     backoff_seconds: [5, 15, 45]
