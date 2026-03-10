@@ -150,7 +150,7 @@ docker compose down      # 완전 종료
 
 ```yaml
 monitoring:
-  poll_interval_minutes: 1    # 폴링 간격 (분)
+  poll_interval_minutes: 3    # 폴링 간격 (분)
   active_hours:
     start: 7                  # 모니터링 시작 시간 (07:00 KST)
     end: 22                   # 모니터링 종료 시간 (22:00 KST)
