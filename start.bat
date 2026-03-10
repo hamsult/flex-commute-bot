@@ -17,7 +17,7 @@ echo Starting flex-commute-bot...
 echo Log file: logs\output.log
 echo To stop: run stop.bat
 
-powershell -WindowStyle Hidden -Command "cd '%~dp0'; python src\main.py >> logs\output.log 2>&1"
+powershell -WindowStyle Hidden -Command "cd '%~dp0'; $env:PYTHONIOENCODING='utf-8'; python src\main.py >> logs\output.log 2>&1"
 
 echo.
 echo Bot is running in the background.
