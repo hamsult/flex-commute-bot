@@ -130,7 +130,7 @@ class StateManager:
                 # status 동일 — timestamp 차이가 5분 초과이면 새 이벤트로 간주 (중복 방지)
                 try:
                     diff = abs((current_record.timestamp - prev_record.timestamp).total_seconds())
-                    if diff > 300:
+                    if diff > 600:
                         changes.append(
                             AttendanceChange(
                                 employee=current_record,
