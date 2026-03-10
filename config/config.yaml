@@ -19,7 +19,7 @@ monitoring:
   failure_cooldown_minutes: 15
 
 slack:
-  notify_channel: "commute"       # # 없이 채널명만
+  notify_channel: "C06P3LZ064C"       # # 없이 채널명만
   alert_channel: "hr-monitor-alerts"  # 에러/세션만료 운영자 알림용
   message_format: "{name}님 {status}, {time}"
 
