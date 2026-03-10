@@ -252,10 +252,10 @@ class FlexCrawler:
 
                 # work-clock API 응답이 올 때까지 최대 30초 대기
                 try:
-                    await asyncio.wait_for(api_received.wait(), timeout=30)
+                    await asyncio.wait_for(api_received.wait(), timeout=60)
                     logger.info("work-clock API 응답 수신 완료")
                 except asyncio.TimeoutError:
-                    logger.warning("work-clock API 응답 대기 시간 초과 (30초)")
+                    logger.warning("work-clock API 응답 대기 시간 초과 (60초)")
 
                 # 나머지 API(users, work-forms)가 완료될 시간 추가 대기
                 await page.wait_for_timeout(3000)
