@@ -126,6 +126,27 @@ async def reset_daily_state() -> None:
     logger.info("일일 상태 초기화 완료")
 
 
+async def check_session_age() -> None:
+    """매일 09:00 KST 세션 파일 나이 확인 — 만료 임박 시 Slack 경고"""
+    session_path = os.path.join(os.path.dirname(__file__), "..", "auth", "session.json")
+    if not os.path.exists(session_path):
+        return
+
+    import time
+    SESSION_EXPIRE_DAYS = 28  # 세션 유효기간 (일)
+    WARN_DAYS_BEFORE = 7      # 만료 며칠 전부터 경고
+
+    age_seconds = time.time() - os.path.getmtime(session_path)
+    days_old = int(age_seconds / 86400)
+    days_left = SESSION_EXPIRE_DAYS - days_old
+
+    if days_left <= WARN_DAYS_BEFORE:
+        logger.warning(f"세션 만료 임박: {days_old}일 경과, 약 {max(days_left, 0)}일 남음")
+        monitor.notifier.notify_session_expiring_soon(days_old, max(days_left, 0))
+    else:
+        logger.info(f"세션 상태 양호: {days_old}일 경과, 약 {days_left}일 남음")
+
+
 def main() -> None:
     global monitor, scheduler
 
@@ -167,6 +188,14 @@ def main() -> None:
         hour=6,
         minute=0,
         id="daily_state_reset",
+    )
+
+    scheduler.add_job(
+        check_session_age,
+        trigger="cron",
+        hour=9,
+        minute=0,
+        id="session_age_check",
     )
 
     asyncio.run(_run())

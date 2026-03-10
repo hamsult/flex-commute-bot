@@ -79,6 +79,18 @@ class SlackNotifier:
         except Exception as e:
             logger.error(f"세션 만료 알림 전송 실패. 수동으로 확인 필요: {e}")
 
+    def notify_session_expiring_soon(self, days_old: int, days_left: int) -> None:
+        msg = (
+            f"[Flex 모니터] 세션 만료 임박 경고\n"
+            f"마지막 로그인: {days_old}일 전\n"
+            f"예상 만료까지: 약 {days_left}일\n"
+            f"login.bat 을 실행해서 Flex 재로그인 해주세요."
+        )
+        try:
+            self._send(self.alert_channel, msg)
+        except Exception as e:
+            logger.error(f"세션 만료 임박 알림 전송 실패: {e}")
+
     def notify_error(self, error: Exception, consecutive_count: int = 1) -> None:
         msg = (
             f"[Flex 모니터] 연속 {consecutive_count}회 오류 발생\n"
