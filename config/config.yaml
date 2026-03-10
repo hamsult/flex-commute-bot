@@ -2,7 +2,7 @@ flex:
   url: "https://flex.team/time-tracking/my-work-record/members?departments="
   session_file: "auth/session.json"
   page_load_timeout: 60000   # ms
-  extra_wait: 5000           # networkidle 후 추가 대기 (ms)
+  extra_wait: 15000          # 페이지 로드 후 추가 대기 (ms)
   # Flex API 응답을 인터셉트할 URL 키워드 (실제 API 확인 후 업데이트)
   api_keywords:
     - "work-clock/users"
