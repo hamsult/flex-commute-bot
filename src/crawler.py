@@ -304,8 +304,8 @@ class FlexCrawler:
                     print(f"  {response.status} {response.url}")
 
             page.on("response", log_response)
-            await page.goto(self.flex_config["url"], wait_until="networkidle", timeout=30000)
-            await page.wait_for_timeout(5000)
+            await page.goto(self.flex_config["url"], wait_until="load", timeout=60000)
+            await page.wait_for_timeout(15000)
             await browser.close()
             print("=================================")
 
