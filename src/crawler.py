@@ -244,7 +244,7 @@ class FlexCrawler:
                 try:
                     await page.goto(
                         self.flex_config["url"],
-                        wait_until="networkidle",
+                        wait_until="load",
                         timeout=self.flex_config["page_load_timeout"],
                     )
                 except Exception as e:
