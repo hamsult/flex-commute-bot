@@ -8,7 +8,7 @@ flex:
     - "work-clock/users"
 
 monitoring:
-  poll_interval_minutes: 5
+  poll_interval_minutes: 3
   active_hours:
     start: 7   # 07:00 KST
     end: 22    # 22:00 KST
