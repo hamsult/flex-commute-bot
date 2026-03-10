@@ -218,21 +218,21 @@ class FlexCrawler:
                 )
                 page = await context.new_page()
 
+                api_received = asyncio.Event()
+
                 async def handle_response(response):
                     url = response.url
                     try:
                         ct = response.headers.get("content-type", "")
                         if "json" not in ct:
                             return
-                        # 전체 직원 출퇴근 기록
                         if "work-clock/users" in url and "current-status" not in url:
                             data = await response.json()
                             captured["work_clock"].append(data)
-                        # 직원 이름 목록
+                            api_received.set()
                         elif "department-users/search" in url or "search-users" in url:
                             data = await response.json()
                             captured["users"].append(data)
-                        # 근무 유형 (코어/자율 등)
                         elif "work-forms" in url and "time-off" not in url:
                             data = await response.json()
                             captured["work_forms"].append(data)
@@ -250,7 +250,15 @@ class FlexCrawler:
                 except Exception as e:
                     logger.warning(f"page.goto() 예외 (계속 진행): {type(e).__name__}: {e}")
 
-                await page.wait_for_timeout(self.flex_config["extra_wait"])
+                # work-clock API 응답이 올 때까지 최대 30초 대기
+                try:
+                    await asyncio.wait_for(api_received.wait(), timeout=30)
+                    logger.info("work-clock API 응답 수신 완료")
+                except asyncio.TimeoutError:
+                    logger.warning("work-clock API 응답 대기 시간 초과 (30초)")
+
+                # 나머지 API(users, work-forms)가 완료될 시간 추가 대기
+                await page.wait_for_timeout(3000)
 
                 if "login" in page.url or "accounts.google" in page.url:
                     raise SessionExpiredError("Flex 세션이 만료되었습니다.")
