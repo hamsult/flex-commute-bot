@@ -121,6 +121,51 @@ docker compose down      # 완전 종료
 
 ---
 
+## GCP 클라우드 운영 가이드
+
+서버: GCP e2-micro (us-west1, 무료 티어)
+접속: GCP 콘솔 → Compute Engine → VM instances → SSH 버튼 클릭
+
+### 상황별 대응
+
+**1. 평소 — 로그 확인**
+```bash
+cd ~/flex-commute-bot
+docker compose logs -f      # 실시간 로그 (Ctrl+C로 종료)
+docker compose ps           # 컨테이너 상태 확인
+```
+
+**2. 코드 수정할 때**
+```bash
+# 맥북에서
+git add . && git commit -m "수정 내용" && git push
+
+# 서버 SSH에서
+cd ~/flex-commute-bot
+git pull && docker compose up -d --build
+```
+
+**3. Flex 세션 만료될 때** (슬랙 #hr-monitor-alerts 알림 오면)
+```bash
+# 1. 맥북에서 세션 재생성
+python src/auth_setup.py
+
+# 2. GCP SSH 창 오른쪽 상단 업로드 버튼으로 session.json 업로드
+
+# 3. 서버 SSH에서
+cp ~/session.json ~/flex-commute-bot/auth/session.json
+cd ~/flex-commute-bot && docker compose restart
+```
+
+**4. 봇이 멈췄을 때**
+```bash
+cd ~/flex-commute-bot
+docker compose ps           # 상태 확인
+docker compose restart      # 재시작
+```
+
+---
+
 ## 설정 파일
 
 `config/config.yaml`에서 동작을 조정할 수 있습니다.
