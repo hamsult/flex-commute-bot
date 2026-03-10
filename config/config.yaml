@@ -1,0 +1,27 @@
+flex:
+  url: "https://flex.team/time-tracking/my-work-record/members?departments="
+  session_file: "auth/session.json"
+  page_load_timeout: 30000   # ms
+  extra_wait: 5000           # networkidle 후 추가 대기 (ms)
+  # Flex API 응답을 인터셉트할 URL 키워드 (실제 API 확인 후 업데이트)
+  api_keywords:
+    - "work-clock/users"
+
+monitoring:
+  poll_interval_minutes: 1
+  active_hours:
+    start: 7   # 07:00 KST
+    end: 22    # 22:00 KST
+  retry:
+    max_attempts: 3
+    backoff_seconds: [5, 15, 45]
+  consecutive_failure_threshold: 3
+  failure_cooldown_minutes: 15
+
+slack:
+  notify_channel: "commute"       # # 없이 채널명만
+  alert_channel: "hr-monitor-alerts"  # 에러/세션만료 운영자 알림용
+  message_format: "{name}님 {status}, {time}"
+
+state:
+  file: "data/state.json"

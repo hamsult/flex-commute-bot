@@ -1,0 +1,7 @@
+.env
+.env.save
+auth/session.json
+data/
+__pycache__/
+*.pyc
+.DS_Store
