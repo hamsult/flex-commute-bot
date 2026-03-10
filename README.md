@@ -101,17 +101,33 @@ docker compose up -d
 
 ## 운영 가이드
 
-### 세션 만료 관리
+### 지속적으로 해야 할 일 (한 달에 한 번)
+
+봇은 한 번 배포하면 자동으로 24시간 돌아갑니다.
+**유일한 정기 작업은 세션 갱신**입니다.
 
 봇이 **매일 오전 9시** 세션 파일 나이를 자동으로 확인합니다.
 만료 **7일 전부터** `#hr-monitor-alerts` 채널에 경고 메시지가 옵니다.
 
 > 세션 유효기간: 약 28일 (Google SSO 정책에 따라 다를 수 있음)
 
-**세션 만료 경고/알림이 오면:**
+**`#hr-monitor-alerts`에 세션 만료 경고가 오면:**
 
-- Windows: `login.bat` 더블클릭 → Flex 재로그인 → `start.bat` 실행
-- Docker 서버: 로컬에서 `python src/auth_setup.py` → `session.json` 서버 전송 → `docker compose restart`
+1. 로컬 맥에서 실행:
+   ```bash
+   cd /path/to/flex-slack-monitor
+   python3 src/auth_setup.py
+   ```
+   브라우저 열리면 Flex 로그인 → 터미널에서 Enter
+
+2. 새 `auth/session.json`을 GCP 서버에 업로드
+   - GCP Console → VM SSH → 우측 상단 업로드 버튼으로 파일 전송
+   - 업로드 위치: `~/flex-commute-bot/auth/session.json`
+
+3. 서버에서 재시작:
+   ```bash
+   docker compose restart
+   ```
 
 ### 로그 확인
 
