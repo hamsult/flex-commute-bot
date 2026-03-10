@@ -17,7 +17,7 @@ echo Starting flex-commute-bot...
 echo Log file: logs\output.log
 echo To stop: run stop.bat
 
-start /min "" python src\main.py >> logs\output.log 2>&1
+start /min "" cmd /c "python src\main.py >> logs\output.log 2>&1"
 
 echo.
 echo Bot is running in the background.
