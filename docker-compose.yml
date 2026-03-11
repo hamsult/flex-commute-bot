@@ -9,6 +9,8 @@ services:
       - .env
     environment:
       - TZ=Asia/Seoul
+      - PYTHONIOENCODING=utf-8
+      - LANG=C.UTF-8
     volumes:
       - ./auth:/app/auth      # 세션 파일 (로컬에서 관리)
       - ./data:/app/data      # 상태 파일 영속화

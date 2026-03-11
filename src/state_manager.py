@@ -97,7 +97,7 @@ class StateManager:
         """
         이전 스냅샷과 현재 스냅샷을 비교하여 변경된 항목을 반환합니다.
         최초 실행(previous=None)이면 빈 리스트 반환 (스팸 방지).
-        status가 동일하고 timestamp 차이가 5분 이내이면 중복 이벤트로 간주해 제외.
+        status가 동일하면 변경 없음으로 간주, 알림 없음.
         """
         if previous is None:
             logger.info("최초 실행 — 현재 상태를 기준으로 저장합니다. 알림 없음.")
@@ -126,20 +126,6 @@ class StateManager:
                         new_status=current_record.status,
                     )
                 )
-            else:
-                # status 동일 — timestamp 차이가 5분 초과이면 새 이벤트로 간주 (중복 방지)
-                try:
-                    diff = abs((current_record.timestamp - prev_record.timestamp).total_seconds())
-                    if diff > 360:
-                        changes.append(
-                            AttendanceChange(
-                                employee=current_record,
-                                previous_status=prev_record.status,
-                                new_status=current_record.status,
-                            )
-                        )
-                except TypeError:
-                    # timezone-aware vs naive 혼용 시 비교 불가 → 알림 없음
-                    pass
+            # status 동일 → 변경 없음, 알림 불필요
 
         return changes

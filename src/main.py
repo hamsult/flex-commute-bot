@@ -19,10 +19,16 @@ from dotenv import load_dotenv
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
+# Windows 터미널 UTF-8 출력 설정
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
+    stream=sys.stdout,
 )
 logger = logging.getLogger(__name__)
 
@@ -48,18 +54,11 @@ class Monitor:
         self.scheduler = scheduler
 
         self.consecutive_failures = 0
-        self.cooldown_until: float = 0
 
         self._SessionExpiredError = SessionExpiredError
         self._CrawlerError = CrawlerError
 
     async def run_cycle(self) -> None:
-        now = time.time()
-        if now < self.cooldown_until:
-            remaining = int(self.cooldown_until - now)
-            logger.info(f"연속 실패 쿨다운 중 ({remaining}초 남음)")
-            return
-
         retry_config = self.mon_config["retry"]
         backoff = retry_config["backoff_seconds"]
         max_attempts = retry_config["max_attempts"]
@@ -100,9 +99,6 @@ class Monitor:
 
         threshold = self.mon_config["consecutive_failure_threshold"]
         if self.consecutive_failures >= threshold:
-            cooldown_min = self.mon_config["failure_cooldown_minutes"]
-            self.cooldown_until = time.time() + cooldown_min * 60
-            logger.error(f"연속 {self.consecutive_failures}회 실패 — {cooldown_min}분 대기")
             try:
                 self.notifier.notify_error(
                     Exception(f"연속 {self.consecutive_failures}회 크롤링 실패"),
