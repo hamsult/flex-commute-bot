@@ -198,6 +198,17 @@ def main() -> None:
 
 async def _run() -> None:
     scheduler.start()
+
+    # Slack DM 커스터마이징 핸들러 (SocketMode) — 선택적 실행
+    bot_token = os.environ.get("SLACK_BOT_TOKEN", "")
+    app_token = os.environ.get("SLACK_APP_TOKEN", "")
+    if app_token:
+        from dm_handler import start_socket_mode
+        asyncio.create_task(start_socket_mode(bot_token, app_token))
+        logger.info("Slack DM 핸들러 활성화 (SocketMode)")
+    else:
+        logger.warning("SLACK_APP_TOKEN 없음 — DM 메시지 커스터마이징 비활성화")
+
     logger.info("스케줄러 실행 중... (Ctrl+C로 종료)")
     try:
         while True:

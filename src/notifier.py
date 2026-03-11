@@ -45,6 +45,9 @@ class SlackNotifier:
         self.alert_channel = config["slack"]["alert_channel"]
         self.message_format = config["slack"]["message_format"]
 
+        from format_store import FormatStore
+        self.format_store = FormatStore()
+
     def _send(self, channel: str, text: str) -> None:
         try:
             self.client.chat_postMessage(channel=channel, text=text)
@@ -64,7 +67,12 @@ class SlackNotifier:
                 logger.info(f"점심 휴게 알림 생략: {name} {status} {time_str}")
                 return
 
-        message = self.message_format.format(name=name, status=status, time=time_str)
+        custom_fmt = self.format_store.get_format(change.employee.employee_id, status)
+        template = custom_fmt if custom_fmt else self.message_format
+        try:
+            message = template.format(name=name, status=status, time=time_str)
+        except KeyError:
+            message = self.message_format.format(name=name, status=status, time=time_str)
         self._send(self.notify_channel, message)
         print(f"[Slack 전송] {message}")
 
