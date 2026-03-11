@@ -36,10 +36,10 @@ HELP_TEXT = """*출퇴근 메시지 커스터마이징 봇* 사용법
 *지원 상태:* 출근, 퇴근, 휴게시작, 휴게종료"""
 
 
-def _get_slack_name(client, user_id: str) -> str:
+async def _get_slack_name(client, user_id: str) -> str:
     """Slack users.info에서 real_name 조회"""
     try:
-        res = client.users_info(user=user_id)
+        res = await client.users_info(user=user_id)
         profile = res["user"]["profile"]
         return profile.get("real_name") or profile.get("display_name") or user_id
     except Exception as e:
@@ -54,7 +54,7 @@ def _load_default_format() -> str:
         return yaml.safe_load(f)["slack"]["message_format"]
 
 
-def _handle_message(body: dict, say, client) -> None:
+async def _handle_message(body: dict, say, client) -> None:
     """DM 메시지 파싱 및 명령어 처리"""
     event = body.get("event", {})
 
@@ -75,29 +75,29 @@ def _handle_message(body: dict, say, client) -> None:
 
     # help
     if cmd == "help" or cmd == "도움말":
-        say(text=HELP_TEXT, channel=channel)
+        await say(text=HELP_TEXT, channel=channel)
         return
 
     # list
     if cmd == "list":
         formats = store.get_all_formats(user_id)
         if not formats:
-            say(text="설정된 커스텀 메시지가 없습니다.\n`help`를 입력하면 사용법을 볼 수 있어요.", channel=channel)
+            await say(text="설정된 커스텀 메시지가 없습니다.\n`help`를 입력하면 사용법을 볼 수 있어요.", channel=channel)
         else:
             lines = ["*내 커스텀 메시지 설정:*"]
             for kw, fmt in formats.items():
                 lines.append(f"• *{kw}*: `{fmt}`")
-            say(text="\n".join(lines), channel=channel)
+            await say(text="\n".join(lines), channel=channel)
         return
 
     # preview <상태>
     if cmd == "preview" and len(parts) >= 2:
         keyword = parts[1]
         if keyword not in STATUS_KEYWORDS:
-            say(text=f"지원하지 않는 상태예요. 가능한 상태: {', '.join(STATUS_KEYWORDS)}", channel=channel)
+            await say(text=f"지원하지 않는 상태예요. 가능한 상태: {', '.join(STATUS_KEYWORDS)}", channel=channel)
             return
 
-        slack_name = _get_slack_name(client, user_id)
+        slack_name = await _get_slack_name(client, user_id)
         employee_id = store.resolve_employee_id(user_id, slack_name)
         now_str = datetime.now().strftime("%H:%M")
 
@@ -108,29 +108,29 @@ def _handle_message(body: dict, say, client) -> None:
                 preview = fmt.format(name=slack_name, status=keyword, time=now_str)
             except KeyError:
                 preview = fmt
-            say(text=f"*미리보기:*\n{preview}", channel=channel)
+            await say(text=f"*미리보기:*\n{preview}", channel=channel)
         else:
             default_fmt = _load_default_format()
             preview = default_fmt.format(name=slack_name, status=keyword, time=now_str)
-            say(text=f"*미리보기 (기본 메시지):*\n{preview}", channel=channel)
+            await say(text=f"*미리보기 (기본 메시지):*\n{preview}", channel=channel)
         return
 
     # clear <상태>
     if cmd == "clear" and len(parts) >= 2:
         keyword = parts[1]
         if keyword not in STATUS_KEYWORDS:
-            say(text=f"지원하지 않는 상태예요. 가능한 상태: {', '.join(STATUS_KEYWORDS)}", channel=channel)
+            await say(text=f"지원하지 않는 상태예요. 가능한 상태: {', '.join(STATUS_KEYWORDS)}", channel=channel)
             return
         if store.clear_format(user_id, keyword):
-            say(text=f"*{keyword}* 메시지를 기본값으로 초기화했습니다.", channel=channel)
+            await say(text=f"*{keyword}* 메시지를 기본값으로 초기화했습니다.", channel=channel)
         else:
-            say(text=f"*{keyword}* 메시지 설정이 없어요.", channel=channel)
+            await say(text=f"*{keyword}* 메시지 설정이 없어요.", channel=channel)
         return
 
     # clearall
     if cmd == "clearall":
         store.clear_all(user_id)
-        say(text="전체 커스텀 메시지를 기본값으로 초기화했습니다.", channel=channel)
+        await say(text="전체 커스텀 메시지를 기본값으로 초기화했습니다.", channel=channel)
         return
 
     # set <상태> <포맷>
@@ -139,15 +139,15 @@ def _handle_message(body: dict, say, client) -> None:
         fmt = parts[2]
 
         if keyword not in STATUS_KEYWORDS:
-            say(text=f"지원하지 않는 상태예요. 가능한 상태: {', '.join(STATUS_KEYWORDS)}", channel=channel)
+            await say(text=f"지원하지 않는 상태예요. 가능한 상태: {', '.join(STATUS_KEYWORDS)}", channel=channel)
             return
 
         # 직원 매핑
-        slack_name = _get_slack_name(client, user_id)
+        slack_name = await _get_slack_name(client, user_id)
         employee_id = store.resolve_employee_id(user_id, slack_name)
 
         if not employee_id:
-            say(
+            await say(
                 text=(
                     f"Flex에서 *{slack_name}* 이름의 직원을 찾지 못했어요.\n"
                     "Flex 등록 이름과 Slack 이름이 다른 경우 관리자에게 문의해주세요."
@@ -165,14 +165,14 @@ def _handle_message(body: dict, say, client) -> None:
         except KeyError:
             preview = fmt
 
-        say(
+        await say(
             text=f"✅ *{keyword}* 메시지가 저장됐습니다!\n미리보기: {preview}",
             channel=channel,
         )
         return
 
     # 알 수 없는 명령어
-    say(text="`help`를 입력하면 사용법을 볼 수 있어요.", channel=channel)
+    await say(text="`help`를 입력하면 사용법을 볼 수 있어요.", channel=channel)
 
 
 async def start_socket_mode(bot_token: str, app_token: str) -> None:
@@ -192,7 +192,7 @@ async def start_socket_mode(bot_token: str, app_token: str) -> None:
         # DM 채널만 처리 (channel_type == "im")
         if event.get("channel_type") != "im":
             return
-        _handle_message(body, say, client)
+        await _handle_message(body, say, client)
 
     handler = AsyncSocketModeHandler(app, app_token)
     logger.info("Slack DM 핸들러 시작 (SocketMode)")
