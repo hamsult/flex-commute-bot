@@ -19,10 +19,10 @@ from format_store import FormatStore, STATUS_KEYWORDS
 HELP_TEXT = """*출퇴근 메시지 커스터마이징 봇* 사용법
 
 *설정:*
-`set 출근 🚀 {name} 출근이요! ({time})`
-`set 퇴근 {name} 퇴근합니다 🌙 ({time})`
-`set 휴게시작 ☕ {name} 잠깐 쉬어요`
-`set 휴게종료 ⌨️ {name} 복귀! ({time})`
+`set 출근 🚀 {name} {status}이요! ({time})`
+`set 퇴근 {name} {status}합니다 🌙 ({time})`
+`set 휴게시작 ☕ {name} {status} ({time})`
+`set 휴게종료 ⌨️ {name} {status}! ({time})`
 
 *조회/관리:*
 `list` — 내 설정 전체 보기
@@ -30,8 +30,11 @@ HELP_TEXT = """*출퇴근 메시지 커스터마이징 봇* 사용법
 `clear 출근` — 출근 메시지 기본값으로 초기화
 `clearall` — 전체 기본값으로 초기화
 
-*사용 가능한 변수:*
-`{name}` — 이름, `{time}` — 시간(HH:MM), `{status}` — 근태 상태
+*필수로 포함되어야 하는 변수:*
+`{status}` — 근태 상태 (코어출근, 자율퇴근 등 Flex 원본 값)
+
+*선택 변수:*
+`{name}` — 이름, `{time}` — 시간(HH:MM)
 
 *지원 상태:* 출근, 퇴근, 휴게시작, 휴게종료"""
 
@@ -140,6 +143,11 @@ async def _handle_message(body: dict, say, client) -> None:
 
         if keyword not in STATUS_KEYWORDS:
             await say(text=f"지원하지 않는 상태예요. 가능한 상태: {', '.join(STATUS_KEYWORDS)}", channel=channel)
+            return
+
+        missing = [v for v in ("{name}", "{time}", "{status}") if v not in fmt]
+        if missing:
+            await say(text=f"❌ 메시지에 {', '.join(f'`{v}`' for v in missing)} 가 반드시 포함되어야 해요.\n예: `set 퇴근 {{name}} {{status}} ({{time}})`", channel=channel)
             return
 
         # 직원 매핑
