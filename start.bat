@@ -38,17 +38,10 @@ echo Starting flex-commute-bot...
 echo Log: %LOGFILE%
 echo.
 
+set "ERRFILE=%BASEDIR%logs\error.log"
+
 :: 백그라운드 실행 후 PID 저장
-powershell -NoProfile -Command ^
-  "$p = Start-Process python ^
-    -ArgumentList 'src\main.py' ^
-    -WorkingDirectory '%BASEDIR%' ^
-    -WindowStyle Hidden ^
-    -PassThru ^
-    -RedirectStandardOutput '%LOGFILE%' ^
-    -RedirectStandardError '%LOGFILE%'; ^
-  $p.Id | Out-File -Encoding ascii '%PIDFILE%'; ^
-  Write-Host ('Bot started. PID=' + $p.Id)"
+powershell -NoProfile -Command "$p = Start-Process python -ArgumentList 'src\main.py' -WorkingDirectory '%BASEDIR%' -WindowStyle Hidden -PassThru -RedirectStandardOutput '%LOGFILE%' -RedirectStandardError '%ERRFILE%'; $p.Id | Out-File -Encoding ascii '%PIDFILE%'; Write-Host ('Bot started. PID=' + $p.Id)"
 
 echo.
 echo Run stop.bat to stop the bot.
